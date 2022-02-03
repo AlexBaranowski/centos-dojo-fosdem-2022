@@ -1,0 +1,184 @@
+{
+  "builders": [
+    {
+      "boot_command": [
+        "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/centos-stream-8/ks.cfg<enter><wait>"
+      ],
+      "boot_wait": "10s",
+      "disk_size": 81920,
+      "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+      "guest_os_type": "RedHat_64",
+      "headless": "{{user `headless`}}",
+      "http_directory": "http",
+      "iso_checksum": "sha1:{{user `iso_checksum`}}",
+      "iso_url": "{{user `iso_server`}}{{user `iso_name`}}",
+      "name": "virtualbox",
+      "output_directory": "../../workspace/packer-centos-stream-8-x86_64-virtualbox",
+      "shutdown_command": "echo 'vagrant'|sudo -S /sbin/halt -h -p",
+      "ssh_password": "vagrant",
+      "ssh_port": 22,
+      "ssh_timeout": "10000s",
+      "ssh_username": "vagrant",
+      "type": "virtualbox-iso",
+      "vboxmanage": [
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--memory",
+          "1024"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--cpus",
+          "1"
+        ]
+      ],
+      "virtualbox_version_file": ".vbox_version",
+      "vm_name": "packer-centos-stream-8-x86_64"
+    },
+    {
+      "accelerator": "kvm",
+      "boot_command": [
+        "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/centos-stream-8/ks.cfg<enter><wait>"
+      ],
+      "boot_wait": "10s",
+      "disk_interface": "virtio",
+      "disk_size": "81920M",
+      "format": "qcow2",
+      "headless": "{{user `headless`}}",
+      "http_directory": "http",
+      "iso_checksum": "sha1:{{user `iso_checksum`}}",
+      "iso_url": "{{user `iso_server`}}{{user `iso_name`}}",
+      "net_device": "virtio-net",
+      "output_directory": "../../workspace/packer-centos-stream-8-x86_64-qemu",
+      "qemuargs": [
+        [
+          "-m",
+          "1024M"
+        ]
+      ],
+      "shutdown_command": "echo 'vagrant'|sudo -S /sbin/halt -h -p",
+      "ssh_password": "vagrant",
+      "ssh_port": 22,
+      "ssh_timeout": "10000s",
+      "ssh_username": "vagrant",
+      "type": "qemu",
+      "vm_name": "packer-centos-stream-8-x86_64"
+    },
+    {
+      "accelerator": "kvm",
+      "boot_command": [
+        "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/centos-stream-8/ks.cfg<enter><wait>"
+      ],
+      "boot_wait": "10s",
+      "disk_size": "81920M",
+      "format": "qcow2",
+      "headless": "{{user `headless`}}",
+      "http_directory": "http",
+      "iso_checksum": "sha1:{{user `iso_checksum`}}",
+      "iso_url": "{{user `iso_server`}}{{user `iso_name`}}",
+      "name": "libvirt",
+      "net_device": "e1000",
+      "output_directory": "../../workspace/packer-centos-stream-8-x86_64-qemu",
+      "qemu_binary": "qemu-kvm",
+      "qemuargs": [
+        [
+          "-m",
+          "1024M"
+        ]
+      ],
+      "shutdown_command": "echo 'vagrant'|sudo -S /sbin/halt -h -p",
+      "ssh_password": "vagrant",
+      "ssh_port": 22,
+      "ssh_timeout": "10000s",
+      "ssh_username": "vagrant",
+      "type": "qemu",
+      "vm_name": "packer-centos-stream-8-x86_64"
+    },
+    {
+      "boot_command": [
+        "<up><wait><tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/centos-stream-8/ks.cfg<enter><wait>"
+      ],
+      "boot_wait": "10s",
+      "disk_size": 81920,
+      "guest_os_type": "linux",
+      "headless": true,
+      "http_directory": "http",
+      "iso_checksum": "sha1:{{user `iso_checksum`}}",
+      "iso_url": "{{user `iso_server`}}{{user `iso_name`}}",
+      "name": "vmware_workstation",
+      "output_directory": "../../workspace/packer-centos-stream-8-x86_64-vmware",
+      "shutdown_command": "echo 'vagrant'|sudo -S /sbin/halt -h -p",
+      "ssh_password": "vagrant",
+      "ssh_port": 22,
+      "ssh_timeout": "10000s",
+      "ssh_username": "vagrant",
+      "tools_upload_flavor": "linux",
+      "type": "vmware-iso",
+      "version": "16",
+      "vm_name": "packer-centos-stream-8-x86_64",
+      "vmx_data": {
+        "cpuid.coresPerSocket": "1"
+      },
+      "vmx_remove_ethernet_interfaces": true,
+      "vmx_template_path": "templates/el-8-vmware.vmx"
+    }
+  ],
+  "post-processors": [
+    {
+      "output": "../../workspace/packer_builds/{{.Provider}}/centos-stream-8-{{user `boxrelease`}}.box",
+      "type": "vagrant",
+      "vagrantfile_template": "templates/Vagrantfile_rsync.template"
+    }
+  ],
+  "provisioners": [
+    {
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "scripts": [
+        "scripts/common/fix-slow-dns.sh",
+        "scripts/common/update.sh"
+      ],
+      "type": "shell"
+    },
+    {
+      "expect_disconnect": true,
+      "inline": [
+        "sudo /usr/sbin/reboot"
+      ],
+      "type": "shell",
+      "valid_exit_codes": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "scripts": [
+        "scripts/common/minimize_packages.sh",
+        "scripts/common/remove_man_pages.sh",
+        "scripts/common/sshd.sh",
+        "scripts/common/vagrant_ssh_and_sudo.sh",
+        "scripts/common/vmtools.sh",
+        "scripts/common/cleanup.sh",
+        "scripts/sl/custom.sh",
+        "scripts/common/minimize.sh"
+      ],
+      "type": "shell"
+    }
+  ],
+  "variables": {
+    "boxrelease": "{{env `BOXRELEASE`}}",
+    "headless": "{{env `HEADLESS`}}",
+    "iso_checksum": "{{env `ISO_CHECKSUM`}}",
+    "iso_name": "{{env `ISO_NAME`}}",
+    "iso_server": "{{env `ISO_SERVER`}}",
+    "kvm_accel": "{{env `PACKER_KVM_ACCEL`}}",
+    "qemu_binary": "{{env `QEMU_BINARY`}}",
+    "vbox_version": "{{env `VBOX_VERSION`}}"
+  }
+}
+

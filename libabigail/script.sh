@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
 
+# Author: Alex Baranowski
+# License: MIT
+# Desc: Get rpms from repoquery, combine them into single list (only duplicated)
+# then run libabigail on packages
+
+# By default only BaseOS and AppStream are used
+
 RHEL_LIST=/tmp/RHEL_LIST
 CENTOS_LIST=/tmp/C9S_LIST
 FINAL_LIST=/tmp/RHEL_AND_C9S
 
-# make it scrict
 
+# make it strict
 set -euo pipefail
 
 prepare_env(){
